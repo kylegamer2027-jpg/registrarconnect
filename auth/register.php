@@ -78,7 +78,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } catch (PDOException $ex) {
 
         // Log the technical error without exposing database details to users.
-        error_log('RegistrarConnect registration error: ' . $ex->getMessage());
+        die(
+    'Registration error: ' .
+    htmlspecialchars($ex->getMessage(), ENT_QUOTES, 'UTF-8')
+);
 
         // Handle duplicate-key errors separately.
         if ($ex->getCode() === '23000') {
