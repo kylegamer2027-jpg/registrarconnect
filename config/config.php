@@ -1,8 +1,12 @@
+
 <?php
-// Local XAMPP configuration. Change credentials if your MySQL setup differs.
-define('DB_HOST', '127.0.0.1');
-define('DB_NAME', 'registrarconnect');
-define('DB_USER', 'root');
-define('DB_PASS', '');
+define('DB_HOST', 'sql313.infinityfree.com');
+define('DB_NAME', 'if0_43232742_registrarconnect_db');
+define('DB_USER', 'if0_43232742');
+define('DB_PASS', 'YOUR_INFINITYFREE_MYSQL_PASSWORD');
+
 define('APP_NAME', 'RegistrarConnect');
-if (session_status() === PHP_SESSION_NONE) session_start();
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
