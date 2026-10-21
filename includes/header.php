@@ -6,6 +6,17 @@ require_once __DIR__ . '/functions.php';
 $user = current_user();
 $flash = get_flash();
 
+$isLoggedIn = $user !== null;
+
+$page_title = $page_title ?? APP_NAME;
+
+$currentPath = parse_url(
+    $_SERVER['REQUEST_URI'] ?? '/',
+    PHP_URL_PATH
+) ?: '/';
+
+$basePath = '/registrarconnect';
+
 ?>
 
 <!doctype html>
@@ -15,29 +26,70 @@ $flash = get_flash();
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <title>
-        <?= e($page_title ?? APP_NAME) ?> | <?= APP_NAME ?>
-    </title>
+    <title><?= e($page_title) ?> | <?= e(APP_NAME) ?></title>
 
     <link
         rel="stylesheet"
-        href="/registrarconnect/assets/style.css"
+        href="<?= $basePath ?>/assets/style.css"
     >
 </head>
 
 <body>
 
-<?php if ($user): ?>
+<?php if ($isLoggedIn): ?>
 
-    <!-- Sidebar -->
+    <?php
+    $isRegistrar = ($user['role'] ?? '') === 'registrar';
+
+    $dashboardUrl = $isRegistrar
+        ? $basePath . '/registrar/dashboard.php'
+        : $basePath . '/student/dashboard.php';
+
+    $nav = $isRegistrar
+        ? [
+            [
+                '▦',
+                'Dashboard',
+                $basePath . '/registrar/dashboard.php',
+            ],
+            [
+                '▤',
+                'Manage Requests',
+                $basePath . '/registrar/requests.php',
+            ],
+            [
+                '♙',
+                'Profile',
+                $basePath . '/registrar/profile.php',
+            ],
+        ]
+        : [
+            [
+                '▦',
+                'Dashboard',
+                $basePath . '/student/dashboard.php',
+            ],
+            [
+                '▤',
+                'Request Documents',
+                $basePath . '/student/request.php',
+            ],
+            [
+                '▣',
+                'My Requests',
+                $basePath . '/student/requests.php',
+            ],
+            [
+                '♙',
+                'Profile',
+                $basePath . '/student/profile.php',
+            ],
+        ];
+    ?>
+
     <aside class="sidebar">
 
-        <a
-            class="brand"
-            href="<?= $user['role'] === 'registrar'
-                ? '/registrarconnect/registrar/dashboard.php'
-                : '/registrarconnect/student/dashboard.php' ?>"
-        >
+        <a class="brand" href="<?= e($dashboardUrl) ?>">
             <span class="brand-icon">▤</span>
 
             <span>
@@ -49,59 +101,17 @@ $flash = get_flash();
         <p class="menu-label">MAIN MENU</p>
 
         <nav>
-            <?php
-            $nav = $user['role'] === 'registrar'
-                ? [
-                    [
-                        '▦',
-                        'Dashboard',
-                        '/registrarconnect/registrar/dashboard.php',
-                    ],
-                    [
-                        '▤',
-                        'Manage Requests',
-                        '/registrarconnect/registrar/requests.php',
-                    ],
-                    [
-                        '♙',
-                        'Profile',
-                        '/registrarconnect/student/profile.php',
-                    ],
-                ]
-                : [
-                    [
-                        '▦',
-                        'Dashboard',
-                        '/registrarconnect/student/dashboard.php',
-                    ],
-                    [
-                        '▤',
-                        'Request Documents',
-                        '/registrarconnect/student/request.php',
-                    ],
-                    [
-                        '▣',
-                        'My Requests',
-                        '/registrarconnect/student/requests.php',
-                    ],
-                    [
-                        '♧',
-                        'Profile',
-                        '/registrarconnect/student/profile.php',
-                    ],
-                ];
-
-            foreach ($nav as $item):
+            <?php foreach ($nav as $item): ?>
+                <?php
                 [$icon, $label, $url] = $item;
 
-                $active = (
-                    ($_SERVER['REQUEST_URI'] ?? '') === $url
-                );
-            ?>
+                $active = ($currentPath === $url);
+                ?>
 
                 <a
                     class="nav-link <?= $active ? 'active' : '' ?>"
                     href="<?= e($url) ?>"
+                    <?= $active ? 'aria-current="page"' : '' ?>
                 >
                     <span><?= e($icon) ?></span>
                     <?= e($label) ?>
@@ -110,7 +120,6 @@ $flash = get_flash();
             <?php endforeach; ?>
         </nav>
 
-        <!-- Help Card -->
         <div class="help-card">
             <span class="help-icon">?</span>
 
@@ -125,58 +134,53 @@ $flash = get_flash();
             </a>
         </div>
 
-        <!-- Logout -->
         <a
             class="nav-link logout"
-            href="/registrarconnect/auth/logout.php"
+            href="<?= $basePath ?>/auth/logout.php"
         >
-            ⇥　Logout
+            <span>⇥</span>
+            Logout
         </a>
 
     </aside>
 
-    <!-- Top Navigation Bar -->
     <header class="topbar">
 
         <div class="search-placeholder">
-            ⌕　 Search requests or documents...
+            ⌕　Search requests or documents...
         </div>
 
         <div class="user-menu">
 
-            <span class="bell">♧</span>
+            <span class="bell" aria-label="Notifications">♧</span>
 
             <span class="avatar">
-                <?= e(strtoupper(substr($user['full_name'], 0, 1))) ?>
+                <?= e(strtoupper(
+                    substr((string) ($user['full_name'] ?? 'U'), 0, 1)
+                )) ?>
             </span>
 
             <span>
-                <b><?= e($user['full_name']) ?></b>
-                <small><?= e(ucfirst($user['role'])) ?></small>
+                <b><?= e($user['full_name'] ?? 'User') ?></b>
+                <small>
+                    <?= e(ucfirst($user['role'] ?? 'student')) ?>
+                </small>
             </span>
 
         </div>
 
     </header>
 
-    <!-- Main Content -->
     <main class="main-content">
-
-        <?php if ($flash): ?>
-            <div class="alert <?= e($flash['type']) ?>">
-                <?= e($flash['message']) ?>
-            </div>
-        <?php endif; ?>
 
 <?php else: ?>
 
-    <!-- Guest / Authentication Layout -->
     <main class="auth-shell">
 
-        <?php if ($flash): ?>
-            <div class="alert <?= e($flash['type']) ?>">
-                <?= e($flash['message']) ?>
-            </div>
-        <?php endif; ?>
-
 <?php endif; ?>
+
+    <?php if ($flash): ?>
+        <div class="alert <?= e($flash['type'] ?? 'success') ?>">
+            <?= e($flash['message'] ?? '') ?>
+        </div>
+    <?php endif; ?>

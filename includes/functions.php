@@ -13,31 +13,55 @@ function e($value): string
 {
     return htmlspecialchars(
         (string) $value,
-        ENT_QUOTES,
+        ENT_QUOTES | ENT_SUBSTITUTE,
         'UTF-8'
     );
 }
 
 /*
 |--------------------------------------------------------------------------
-| Navigation and Authentication
+| Navigation
 |--------------------------------------------------------------------------
 */
 
 function redirect(string $path): never
 {
+    // Prevent header injection and redirects to external websites.
+    if (
+        $path === '' ||
+        str_contains($path, "\r") ||
+        str_contains($path, "\n") ||
+        !str_starts_with($path, '/') ||
+        str_starts_with($path, '//')
+    ) {
+        $path = '/registrarconnect/auth/login.php';
+    }
+
     header('Location: ' . $path);
     exit;
 }
 
+/*
+|--------------------------------------------------------------------------
+| Authentication
+|--------------------------------------------------------------------------
+*/
+
 function current_user(): ?array
 {
-    return $_SESSION['user'] ?? null;
+    if (
+        !isset($_SESSION['user']) ||
+        !is_array($_SESSION['user'])
+    ) {
+        return null;
+    }
+
+    return $_SESSION['user'];
 }
 
 function require_login(): void
 {
-    if (!current_user()) {
+    if (current_user() === null) {
         redirect('/registrarconnect/auth/login.php');
     }
 }
@@ -48,7 +72,10 @@ function require_role(string $role): void
 
     if (($_SESSION['user']['role'] ?? '') !== $role) {
         http_response_code(403);
-        exit('403 Forbidden: You are not authorized to view this page.');
+
+        exit(
+            '403 Forbidden: You are not authorized to view this page.'
+        );
     }
 }
 
@@ -60,7 +87,11 @@ function require_role(string $role): void
 
 function csrf_token(): string
 {
-    if (empty($_SESSION['csrf'])) {
+    if (
+        !isset($_SESSION['csrf']) ||
+        !is_string($_SESSION['csrf']) ||
+        $_SESSION['csrf'] === ''
+    ) {
         $_SESSION['csrf'] = bin2hex(random_bytes(32));
     }
 
@@ -69,15 +100,20 @@ function csrf_token(): string
 
 function verify_csrf(): void
 {
+    $sessionToken = $_SESSION['csrf'] ?? '';
+    $submittedToken = $_POST['csrf'] ?? '';
+
     if (
-        !hash_equals(
-            $_SESSION['csrf'] ?? '',
-            $_POST['csrf'] ?? ''
-        )
+        !is_string($sessionToken) ||
+        !is_string($submittedToken) ||
+        $sessionToken === '' ||
+        $submittedToken === '' ||
+        !hash_equals($sessionToken, $submittedToken)
     ) {
         http_response_code(419);
+
         exit(
-            'Your session token expired. Go back, refresh, and try again.'
+            'Your session token expired. Refresh the page and try again.'
         );
     }
 }
@@ -94,7 +130,7 @@ function set_flash(
 ): void {
     $_SESSION['flash'] = [
         'message' => $message,
-        'type'    => $type,
+        'type' => $type,
     ];
 }
 
@@ -104,21 +140,31 @@ function get_flash(): ?array
 
     unset($_SESSION['flash']);
 
+    if (!is_array($flash)) {
+        return null;
+    }
+
     return $flash;
 }
 
 /*
 |--------------------------------------------------------------------------
-| Request Status and Reference Number
+| Request Status
 |--------------------------------------------------------------------------
 */
 
 function status_class(string $status): string
 {
     return strtolower(
-        str_replace(' ', '-', $status)
+        str_replace(' ', '-', trim($status))
     );
 }
+
+/*
+|--------------------------------------------------------------------------
+| Request Reference Number
+|--------------------------------------------------------------------------
+*/
 
 function create_request_id(int $id): string
 {

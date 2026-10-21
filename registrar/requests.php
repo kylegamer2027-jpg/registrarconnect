@@ -1,10 +1,15 @@
 
 <?php
+
 require_once __DIR__ . '/../includes/functions.php';
 
 require_role('registrar');
 
-$status = trim($_GET['status'] ?? '');
+/*
+|--------------------------------------------------------------------------
+| Status Filter
+|--------------------------------------------------------------------------
+*/
 
 $allowed = [
     'Pending',
@@ -12,67 +17,124 @@ $allowed = [
     'Processing',
     'Ready for Release',
     'Completed',
-    'Rejected'
+    'Rejected',
 ];
 
-// Build the request query.
-$sql = '
-    SELECT
-        r.*,
-        d.name AS document_name,
-        u.full_name AS student_name,
-        u.student_no
-    FROM document_requests r
-    LEFT JOIN document_types d
-        ON d.id = r.document_id
-    JOIN users u
-        ON u.id = r.student_id
-';
+$status = trim($_GET['status'] ?? '');
 
-$params = [];
+$filterStatus = in_array($status, $allowed, true)
+    ? $status
+    : '';
 
-if (in_array($status, $allowed, true)) {
-    $sql .= ' WHERE r.status = ?';
-    $params[] = $status;
+/*
+|--------------------------------------------------------------------------
+| Retrieve Document Requests
+|--------------------------------------------------------------------------
+*/
+
+$requests = [];
+$loadError = false;
+
+try {
+    $sql = "
+        SELECT
+            r.id,
+            r.student_id,
+            r.document_type AS document_name,
+            r.created_at,
+            r.status,
+            u.full_name AS student_name,
+            u.student_no
+        FROM document_requests AS r
+        INNER JOIN users AS u
+            ON u.id = r.student_id
+    ";
+
+    $params = [];
+
+    if ($filterStatus !== '') {
+        $sql .= ' WHERE r.status = ?';
+        $params[] = $filterStatus;
+    }
+
+    $sql .= ' ORDER BY r.created_at DESC';
+
+    $query = db()->prepare($sql);
+    $query->execute($params);
+
+    $requests = $query->fetchAll(PDO::FETCH_ASSOC);
+
+} catch (PDOException $ex) {
+    error_log(
+        'Registrar requests page error: ' . $ex->getMessage()
+    );
+
+    $loadError = true;
 }
 
-$sql .= ' ORDER BY r.created_at DESC';
-
-$q = db()->prepare($sql);
-$q->execute($params);
-
-$requests = $q->fetchAll(PDO::FETCH_ASSOC);
+/*
+|--------------------------------------------------------------------------
+| Page Header
+|--------------------------------------------------------------------------
+*/
 
 $page_title = 'Manage Requests';
 
 require __DIR__ . '/../includes/header.php';
+
 ?>
 
+<!-- Page Heading -->
 <div class="page-heading">
+
     <h1>Manage Requests</h1>
-    <p>Review submissions and update their processing status.</p>
+
+    <p>
+        Review student submissions and update their processing status.
+    </p>
+
 </div>
 
+<!-- Status Filters -->
 <div class="filter-row">
+
     <a
-        class="filter-chip"
+        class="filter-chip <?= $filterStatus === '' ? 'active' : '' ?>"
         href="/registrarconnect/registrar/requests.php"
+        <?= $filterStatus === '' ? 'aria-current="page"' : '' ?>
     >
         All
     </a>
 
     <?php foreach ($allowed as $s): ?>
+
         <a
-            class="filter-chip"
-            href="?status=<?= urlencode($s) ?>"
+            class="filter-chip <?= $filterStatus === $s ? 'active' : '' ?>"
+            href="/registrarconnect/registrar/requests.php?status=<?= urlencode($s) ?>"
+            <?= $filterStatus === $s ? 'aria-current="page"' : '' ?>
         >
             <?= e($s) ?>
         </a>
+
     <?php endforeach; ?>
+
 </div>
 
+<!-- Requests Table -->
 <section class="panel">
-    <?php require __DIR__ . '/../includes/request_table.php'; ?>
+
+    <?php if ($loadError): ?>
+
+        <div class="alert error">
+            Unable to load document requests. Please try again later.
+        </div>
+
+    <?php else: ?>
+
+        <?php require __DIR__ . '/../includes/request_table.php'; ?>
+
+    <?php endif; ?>
+
 </section>
 
 <?php require __DIR__ . '/../includes/footer.php'; ?>

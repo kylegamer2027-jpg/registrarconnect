@@ -5,7 +5,7 @@ require_once __DIR__ . '/../includes/functions.php';
 
 require_role('student');
 
-$uid = current_user()['id'];
+$uid = (int) current_user()['id'];
 
 /*
 |--------------------------------------------------------------------------
@@ -16,15 +16,15 @@ $uid = current_user()['id'];
 $query = db()->prepare("
     SELECT
         COUNT(*) AS total,
-        SUM(status IN ('Pending', 'Under Review')) AS pending,
-        SUM(status = 'Processing') AS processing,
-        SUM(status IN ('Completed', 'Ready for Release')) AS completed
+        COALESCE(SUM(status IN ('Pending', 'Under Review')), 0) AS pending,
+        COALESCE(SUM(status = 'Processing'), 0) AS processing,
+        COALESCE(SUM(status IN ('Ready for Release', 'Completed')), 0) AS completed
     FROM document_requests
     WHERE student_id = ?
 ");
 
 $query->execute([$uid]);
-$counts = $query->fetch();
+$counts = $query->fetch(PDO::FETCH_ASSOC);
 
 /*
 |--------------------------------------------------------------------------
@@ -32,7 +32,7 @@ $counts = $query->fetch();
 |--------------------------------------------------------------------------
 */
 
-$docs = db()->query("
+$query = db()->query("
     SELECT
         id,
         name,
@@ -41,8 +41,10 @@ $docs = db()->query("
         icon_symbol
     FROM document_types
     WHERE is_active = 1
-    ORDER BY sort_order
-")->fetchAll();
+    ORDER BY sort_order, name
+");
+
+$docs = $query->fetchAll(PDO::FETCH_ASSOC);
 
 /*
 |--------------------------------------------------------------------------
@@ -53,15 +55,17 @@ $docs = db()->query("
 $query = db()->prepare("
     SELECT
         r.*,
-        r.document_type AS document_name
+        COALESCE(d.name, 'Unknown document') AS document_name
     FROM document_requests AS r
+    LEFT JOIN document_types AS d
+        ON d.id = r.document_id
     WHERE r.student_id = ?
     ORDER BY r.created_at DESC
     LIMIT 5
 ");
 
 $query->execute([$uid]);
-$requests = $query->fetchAll();
+$requests = $query->fetchAll(PDO::FETCH_ASSOC);
 
 $selected = $requests[0] ?? null;
 
@@ -84,7 +88,7 @@ require __DIR__ . '/../includes/header.php';
 
         <h1>
             Welcome back,
-            <?= e(explode(' ', current_user()['full_name'])[0]) ?>!
+            <?= e(explode(' ', trim(current_user()['full_name']))[0]) ?>!
         </h1>
 
         <p>
@@ -96,7 +100,7 @@ require __DIR__ . '/../includes/header.php';
         class="btn primary"
         href="/registrarconnect/student/request.php"
     >
-        ＋　Request a Document
+        ＋ Request a Document
     </a>
 </div>
 
@@ -105,45 +109,37 @@ require __DIR__ . '/../includes/header.php';
 
     <div class="stat-card">
         <span class="stat-icon blue">▤</span>
-
         <div>
             <small>Total Requests</small>
             <p>All time</p>
         </div>
-
         <strong><?= (int) ($counts['total'] ?? 0) ?></strong>
     </div>
 
     <div class="stat-card">
         <span class="stat-icon amber">◷</span>
-
         <div>
             <small>Pending Requests</small>
             <p>Awaiting review</p>
         </div>
-
         <strong><?= (int) ($counts['pending'] ?? 0) ?></strong>
     </div>
 
     <div class="stat-card">
         <span class="stat-icon red">✣</span>
-
         <div>
             <small>Processing Requests</small>
             <p>Currently in progress</p>
         </div>
-
         <strong><?= (int) ($counts['processing'] ?? 0) ?></strong>
     </div>
 
     <div class="stat-card">
         <span class="stat-icon green">✓</span>
-
         <div>
             <small>Completed Requests</small>
             <p>Ready or released</p>
         </div>
-
         <strong><?= (int) ($counts['completed'] ?? 0) ?></strong>
     </div>
 
@@ -157,7 +153,7 @@ require __DIR__ . '/../includes/header.php';
     </div>
 
     <a href="/registrarconnect/student/request.php">
-        View all　›
+        View all ›
     </a>
 </div>
 
@@ -166,18 +162,16 @@ require __DIR__ . '/../includes/header.php';
     <?php foreach ($docs as $d): ?>
         <article class="document-card">
 
-            <span class="doc-icon <?= e($d['icon_color']) ?>">
-                <?= e($d['icon_symbol']) ?>
+            <span class="doc-icon <?= e($d['icon_color'] ?? 'blue') ?>">
+                <?= e($d['icon_symbol'] ?? '▤') ?>
             </span>
 
             <h3><?= e($d['name']) ?></h3>
 
-            <p><?= e($d['description']) ?></p>
+            <p><?= e($d['description'] ?? '') ?></p>
 
-            <a
-                href="/registrarconnect/student/request.php?type=<?= (int) $d['id'] ?>"
-            >
-                Request now　›
+            <a href="/registrarconnect/student/request.php?type=<?= (int) $d['id'] ?>">
+                Request now ›
             </a>
 
         </article>
@@ -194,7 +188,6 @@ require __DIR__ . '/../includes/header.php';
 <!-- Recent Requests and Tracking -->
 <div class="lower-grid">
 
-    <!-- Recent Requests Table -->
     <section class="panel">
 
         <div class="panel-heading">
@@ -204,7 +197,7 @@ require __DIR__ . '/../includes/header.php';
             </div>
 
             <a href="/registrarconnect/student/requests.php">
-                View all　›
+                View all ›
             </a>
         </div>
 
@@ -212,6 +205,12 @@ require __DIR__ . '/../includes/header.php';
 
             <div class="empty-state">
                 You haven't submitted any requests yet.
+
+                <p>
+                    <a href="/registrarconnect/student/request.php">
+                        Submit your first request
+                    </a>
+                </p>
             </div>
 
         <?php else: ?>
@@ -232,20 +231,13 @@ require __DIR__ . '/../includes/header.php';
                         <?php foreach ($requests as $r): ?>
                             <tr>
                                 <td>
-                                    <?= e(create_request_id($r['id'])) ?>
+                                    <?= e(create_request_id((int) $r['id'])) ?>
                                 </td>
 
-                                <td>
-                                    <?= e($r['document_name']) ?>
-                                </td>
+                                <td><?= e($r['document_name']) ?></td>
 
                                 <td>
-                                    <?= e(
-                                        date(
-                                            'M d, Y',
-                                            strtotime($r['created_at'])
-                                        )
-                                    ) ?>
+                                    <?= e(date('M d, Y', strtotime($r['created_at']))) ?>
                                 </td>
 
                                 <td>
@@ -255,9 +247,7 @@ require __DIR__ . '/../includes/header.php';
                                 </td>
 
                                 <td>
-                                    <a
-                                        href="/registrarconnect/student/details.php?id=<?= (int) $r['id'] ?>"
-                                    >
+                                    <a href="/registrarconnect/student/details.php?id=<?= (int) $r['id'] ?>">
                                         View details
                                     </a>
                                 </td>
@@ -271,7 +261,7 @@ require __DIR__ . '/../includes/header.php';
 
     </section>
 
-    <!-- Request Tracking Panel -->
+    <!-- Request Tracking -->
     <aside class="panel tracking-panel">
 
         <div class="tracking-title">
@@ -286,12 +276,9 @@ require __DIR__ . '/../includes/header.php';
 
         <?php if ($selected): ?>
 
-            <h3>
-                <?= e(create_request_id($selected['id'])) ?>
-            </h3>
+            <h3><?= e(create_request_id((int) $selected['id'])) ?></h3>
 
             <div class="tracking-doc">
-
                 <span class="doc-icon red">▤</span>
 
                 <div>
@@ -299,15 +286,9 @@ require __DIR__ . '/../includes/header.php';
 
                     <small>
                         Requested on
-                        <?= e(
-                            date(
-                                'M d, Y',
-                                strtotime($selected['created_at'])
-                            )
-                        ) ?>
+                        <?= e(date('M d, Y', strtotime($selected['created_at']))) ?>
                     </small>
                 </div>
-
             </div>
 
             <?php
@@ -325,8 +306,8 @@ require __DIR__ . '/../includes/header.php';
             <?php if ($selected['status'] === 'Rejected'): ?>
 
                 <p class="alert error">
-                    This request was rejected. Open the details to review
-                    the registrar's remarks.
+                    This request was rejected. Review the registrar's remarks
+                    in the request details.
                 </p>
 
             <?php else: ?>
@@ -349,7 +330,6 @@ require __DIR__ . '/../includes/header.php';
                         ?>
 
                         <li class="<?= e($stepClass) ?>">
-
                             <span>
                                 <?= $isCompleted ? '✓' : $i + 1 ?>
                             </span>
@@ -367,7 +347,6 @@ require __DIR__ . '/../includes/header.php';
                                     <?php endif; ?>
                                 </small>
                             </div>
-
                         </li>
                     <?php endforeach; ?>
 

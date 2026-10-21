@@ -5,11 +5,12 @@ require_once __DIR__ . '/../includes/functions.php';
 require_login();
 
 $u = current_user();
+$profile_url = '/registrarconnect/student/profile.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     verify_csrf();
 
-    $action = $_POST['action'] ?? 'profile';
+    $action = $_POST['action'] ?? '';
 
     // Change password
     if ($action === 'password') {
@@ -17,34 +18,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $new = $_POST['new_password'] ?? '';
         $confirm = $_POST['confirm_password'] ?? '';
 
-        $q = db()->prepare(
-            'SELECT password_hash FROM users WHERE id = ?'
-        );
-        $q->execute([$u['id']]);
-        $row = $q->fetch(PDO::FETCH_ASSOC);
-
-        if (!$row || !password_verify($current, $row['password_hash'])) {
-            set_flash('Current password is incorrect.', 'error');
-            redirect('/registrarconnect/student/profile.php');
-        }
-
-        if (strlen($new) < 8 || $new !== $confirm) {
+        if ($new === '' || strlen($new) < 8) {
             set_flash(
-                'New passwords must match and contain at least 8 characters.',
+                'Your new password must contain at least 8 characters.',
                 'error'
             );
-            redirect('/registrarconnect/student/profile.php');
+            redirect($profile_url);
         }
 
-        if (password_verify($new, $row['password_hash'])) {
-            set_flash(
-                'Your new password must be different from your current password.',
-                'error'
-            );
-            redirect('/registrarconnect/student/profile.php');
+        if ($new !== $confirm) {
+            set_flash('The new passwords do not match.', 'error');
+            redirect($profile_url);
         }
 
         try {
+            $q = db()->prepare(
+                'SELECT password_hash FROM users WHERE id = ? LIMIT 1'
+            );
+            $q->execute([$u['id']]);
+            $row = $q->fetch();
+
+            if (!$row || !password_verify($current, $row['password_hash'])) {
+                set_flash('Current password is incorrect.', 'error');
+                redirect($profile_url);
+            }
+
+            if (password_verify($new, $row['password_hash'])) {
+                set_flash(
+                    'Your new password must differ from your current password.',
+                    'error'
+                );
+                redirect($profile_url);
+            }
+
             $q = db()->prepare(
                 'UPDATE users SET password_hash = ? WHERE id = ?'
             );
@@ -54,7 +60,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $u['id']
             ]);
 
+            // Invalidate the current session ID after changing credentials.
+            session_regenerate_id(true);
+
             set_flash('Password changed successfully.');
+
         } catch (Throwable $e) {
             error_log('Password update failed: ' . $e->getMessage());
 
@@ -64,7 +74,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             );
         }
 
-        redirect('/registrarconnect/student/profile.php');
+        redirect($profile_url);
     }
 
     // Update profile information
@@ -73,12 +83,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if ($name === '') {
             set_flash('Name cannot be blank.', 'error');
-            redirect('/registrarconnect/student/profile.php');
+            redirect($profile_url);
         }
 
-        if (mb_strlen($name) > 150) {
+        if (mb_strlen($name, 'UTF-8') > 150) {
             set_flash('Name must not exceed 150 characters.', 'error');
-            redirect('/registrarconnect/student/profile.php');
+            redirect($profile_url);
         }
 
         try {
@@ -88,10 +98,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             $q->execute([$name, $u['id']]);
 
-            // Update the current session.
+            // Keep the displayed session profile up to date.
             $_SESSION['user']['full_name'] = $name;
 
             set_flash('Profile updated successfully.');
+
         } catch (Throwable $e) {
             error_log('Profile update failed: ' . $e->getMessage());
 
@@ -101,11 +112,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             );
         }
 
-        redirect('/registrarconnect/student/profile.php');
+        redirect($profile_url);
     }
 
     set_flash('Invalid action.', 'error');
-    redirect('/registrarconnect/student/profile.php');
+    redirect($profile_url);
 }
 
 $page_title = 'Profile';
@@ -130,7 +141,6 @@ require __DIR__ . '/../includes/header.php';
                 name="csrf"
                 value="<?= e(csrf_token()) ?>"
             >
-
             <input type="hidden" name="action" value="profile">
 
             <label for="full_name">Full name</label>
@@ -140,6 +150,7 @@ require __DIR__ . '/../includes/header.php';
                 name="full_name"
                 value="<?= e($u['full_name'] ?? '') ?>"
                 maxlength="150"
+                autocomplete="name"
                 required
             >
 
@@ -175,7 +186,6 @@ require __DIR__ . '/../includes/header.php';
                 name="csrf"
                 value="<?= e(csrf_token()) ?>"
             >
-
             <input type="hidden" name="action" value="password">
 
             <label for="current_password">Current password</label>

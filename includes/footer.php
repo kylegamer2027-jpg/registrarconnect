@@ -1,18 +1,21 @@
 
 </main>
 
-<?php if (current_user()): ?>
+<?php if (function_exists('current_user') && current_user()): ?>
     <footer class="footer">
-        <span>
-            <b>▤ Registrar's Office</b>
-            <small>Making academic services simpler.</small>
-        </span>
+        <div class="footer-brand">
+            <span class="footer-brand-icon">▤</span>
+            <div>
+                <b>Registrar's Office</b>
+                <small>Making academic services simpler.</small>
+            </div>
+        </div>
 
-        <span>
-            Registrar's Office
-            • Olongapo City, Zambales
-            • © <?= date('Y') ?> CELTECH College
-        </span>
+        <div class="footer-meta">
+            <span>Olongapo City, Zambales</span>
+            <span class="footer-separator">•</span>
+            <span>© <?= date('Y') ?> CELTECH College</span>
+        </div>
     </footer>
 <?php endif; ?>
 

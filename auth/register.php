@@ -1,36 +1,74 @@
 
 <?php
+declare(strict_types=1);
+
+/*
+|--------------------------------------------------------------------------
+| RegistrarConnect - Student Registration
+|--------------------------------------------------------------------------
+*/
 
 require_once __DIR__ . '/../includes/functions.php';
 
+$registerPath = '/registrarconnect/auth/register.php';
+$loginPath = '/registrarconnect/auth/login.php';
+
+/*
+|--------------------------------------------------------------------------
+| Handle Registration Submission
+|--------------------------------------------------------------------------
+*/
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-
-    verify_csrf();
-
-    $name = trim($_POST['full_name'] ?? '');
-    $email = strtolower(trim($_POST['email'] ?? ''));
-    $student_no = trim($_POST['student_no'] ?? '');
-    $password = $_POST['password'] ?? '';
-
-    // Validate required fields
-    if (
-        $name === '' ||
-        !filter_var($email, FILTER_VALIDATE_EMAIL) ||
-        strlen($password) < 8 ||
-        $student_no === ''
-    ) {
-        set_flash(
-            'Please complete all fields. Enter a valid email, student number, and password with at least 8 characters.',
-            'error'
-        );
-
-        redirect('/registrarconnect/auth/register.php');
-    }
-
     try {
+        // Validate the CSRF token.
+        verify_csrf();
+
+        // Read and normalize submitted fields.
+        $name = trim((string) ($_POST['full_name'] ?? ''));
+        $email = strtolower(trim((string) ($_POST['email'] ?? '')));
+        $studentNo = trim((string) ($_POST['student_no'] ?? ''));
+        $password = (string) ($_POST['password'] ?? '');
+
+        /*
+        |--------------------------------------------------------------------------
+        | Validate Required Fields
+        |--------------------------------------------------------------------------
+        */
+
+        if (
+            $name === '' ||
+            strlen($name) > 150 ||
+            $email === '' ||
+            strlen($email) > 150 ||
+            !filter_var($email, FILTER_VALIDATE_EMAIL) ||
+            $studentNo === '' ||
+            strlen($studentNo) > 60 ||
+            strlen($password) < 8
+        ) {
+            set_flash(
+                'Please complete all fields. Use a valid email, a student number, and a password with at least 8 characters.',
+                'error'
+            );
+
+            redirect($registerPath);
+            exit;
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Connect to Database
+        |--------------------------------------------------------------------------
+        */
+
         $pdo = db();
 
-        // Check whether the email or student number already exists.
+        /*
+        |--------------------------------------------------------------------------
+        | Check Existing Email or Student Number
+        |--------------------------------------------------------------------------
+        */
+
         $check = $pdo->prepare(
             'SELECT id
              FROM users
@@ -38,7 +76,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
              LIMIT 1'
         );
 
-        $check->execute([$email, $student_no]);
+        $check->execute([$email, $studentNo]);
 
         if ($check->fetch(PDO::FETCH_ASSOC)) {
             set_flash(
@@ -46,10 +84,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'error'
             );
 
-            redirect('/registrarconnect/auth/register.php');
+            redirect($registerPath);
+            exit;
         }
 
-        // Create the student account.
+        /*
+        |--------------------------------------------------------------------------
+        | Create Student Account
+        |--------------------------------------------------------------------------
+        */
+
+        $passwordHash = password_hash($password, PASSWORD_DEFAULT);
+
+        if ($passwordHash === false) {
+            throw new RuntimeException('Password hashing failed.');
+        }
+
         $query = $pdo->prepare(
             'INSERT INTO users (
                 full_name,
@@ -63,27 +113,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $query->execute([
             $name,
             $email,
-            $student_no,
-            password_hash($password, PASSWORD_DEFAULT),
+            $studentNo,
+            $passwordHash,
             'student'
         ]);
+
+        /*
+        |--------------------------------------------------------------------------
+        | Registration Successful
+        |--------------------------------------------------------------------------
+        */
 
         set_flash(
             'Account created successfully. You can now log in.',
             'success'
         );
 
-        redirect('/registrarconnect/auth/login.php');
+        redirect($loginPath);
+        exit;
 
     } catch (PDOException $ex) {
+        // Keep database details out of the public page.
+        error_log('RegistrarConnect registration database error: ' . $ex->getMessage());
 
-        // Log the technical error without exposing database details to users.
-        die(
-    'Registration error: ' .
-    htmlspecialchars($ex->getMessage(), ENT_QUOTES, 'UTF-8')
-);
-
-        // Handle duplicate-key errors separately.
+        // SQLSTATE 23000 commonly indicates a duplicate-key constraint.
         if ($ex->getCode() === '23000') {
             set_flash(
                 'The email address or student number may already be registered. Please check your details.',
@@ -91,19 +144,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             );
         } else {
             set_flash(
-                'We could not create your account because of a database error. Please try again later.',
+                'We could not create your account. Please try again later.',
                 'error'
             );
         }
 
-        redirect('/registrarconnect/auth/register.php');
+        redirect($registerPath);
+        exit;
+
+    } catch (Throwable $ex) {
+        error_log('RegistrarConnect registration error: ' . $ex->getMessage());
+
+        set_flash(
+            'Something went wrong while creating your account. Please try again.',
+            'error'
+        );
+
+        redirect($registerPath);
+        exit;
     }
 }
+
+/*
+|--------------------------------------------------------------------------
+| Display Registration Page
+|--------------------------------------------------------------------------
+*/
 
 $page_title = 'Create Account';
 
 require __DIR__ . '/../includes/header.php';
-
 ?>
 
 <div class="auth-card">
@@ -118,7 +188,10 @@ require __DIR__ . '/../includes/header.php';
         Register as a student to request academic documents.
     </p>
 
-    <form method="post" action="/registrarconnect/auth/register.php">
+    <form
+        method="post"
+        action="<?= e($registerPath) ?>"
+    >
 
         <input
             type="hidden"
@@ -127,6 +200,7 @@ require __DIR__ . '/../includes/header.php';
         >
 
         <label for="full_name">Full name</label>
+
         <input
             type="text"
             id="full_name"
@@ -137,15 +211,18 @@ require __DIR__ . '/../includes/header.php';
         >
 
         <label for="student_no">Student number</label>
+
         <input
             type="text"
             id="student_no"
             name="student_no"
             maxlength="60"
             required
+            autocomplete="off"
         >
 
         <label for="email">Email address</label>
+
         <input
             type="email"
             id="email"
@@ -156,6 +233,7 @@ require __DIR__ . '/../includes/header.php';
         >
 
         <label for="password">Password</label>
+
         <input
             type="password"
             id="password"
@@ -173,7 +251,7 @@ require __DIR__ . '/../includes/header.php';
 
     <p class="auth-switch">
         Already registered?
-        <a href="/registrarconnect/auth/login.php">
+        <a href="<?= e($loginPath) ?>">
             Log in
         </a>
     </p>

@@ -3,18 +3,22 @@
 
 require_once __DIR__ . '/includes/functions.php';
 
-// Redirect users who are already logged in.
+// Check whether a user is logged in.
 $user = current_user();
 
+// Redirect logged-in users to their dashboard.
 if ($user) {
-    if ($user['role'] === 'registrar') {
+    if (($user['role'] ?? '') === 'registrar') {
         redirect('/registrarconnect/registrar/dashboard.php');
     }
 
-    redirect('/registrarconnect/student/dashboard.php');
+    if (($user['role'] ?? '') === 'student') {
+        redirect('/registrarconnect/student/dashboard.php');
+    }
+
+    // Handle an unexpected or unsupported role.
+    redirect('/registrarconnect/auth/login.php');
 }
 
-// Redirect guests to the login page.
+// Guests must log in first.
 redirect('/registrarconnect/auth/login.php');
-
-?>
