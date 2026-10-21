@@ -1,9 +1,8 @@
-
 <?php
-define('DB_HOST', 'sql313.infinityfree.com');
-define('DB_NAME', 'if0_43232742_registrarconnect_db');
-define('DB_USER', 'if0_43232742');
-define('DB_PASS', 'UrCcu74bKc');
+define('DB_HOST', 'localhost');
+define('DB_NAME', 'registrarconnect_db');
+define('DB_USER', 'root');
+define('DB_PASS', '');
 
 define('APP_NAME', 'RegistrarConnect');
 
