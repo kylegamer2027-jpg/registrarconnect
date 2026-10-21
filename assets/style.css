@@ -1262,3 +1262,138 @@ hr {
     padding-right: 13px;
   }
 }
+
+/* ========================================
+   19. FINAL UI IMPROVEMENTS
+   ======================================== */
+
+/* Consistent focus visibility for keyboard users */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid #8bbcff;
+  outline-offset: 3px;
+}
+
+/* Keep buttons and links from overflowing */
+.btn {
+  max-width: 100%;
+  text-align: center;
+  line-height: 1.5;
+}
+
+button:disabled,
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Improve long text and document names */
+.panel,
+.panel-heading,
+.form-panel,
+.auth-card {
+  overflow-wrap: anywhere;
+}
+
+.document-card h3 {
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+
+/* Make textareas easier to use */
+textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+/* Ensure disabled form fields remain readable */
+input:disabled {
+  opacity: 1;
+  -webkit-text-fill-color: #8794aa;
+}
+
+/* Prevent detail values from stretching the layout */
+.details dd {
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+/* Let table action buttons wrap on smaller screens */
+.table-wrap td .btn {
+  white-space: normal;
+}
+
+/* Improve history text spacing */
+.history-list li:last-child {
+  padding-bottom: 0;
+}
+
+/* Ensure alerts and empty states fit narrow screens */
+.alert,
+.empty-state,
+.form-note {
+  overflow-wrap: anywhere;
+}
+
+/* Better spacing on smaller devices */
+@media (max-width: 800px) {
+  .page-heading {
+    margin-bottom: 20px;
+  }
+
+  .section-heading {
+    align-items: flex-start;
+  }
+
+  .user-menu {
+    gap: 8px;
+  }
+
+  .user-menu b {
+    max-width: 130px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+@media (max-width: 480px) {
+  .page-heading h1 {
+    font-size: 25px;
+    letter-spacing: -0.7px;
+  }
+
+  .page-heading .btn,
+  .form-panel form > .btn {
+    width: 100%;
+  }
+
+  .form-panel form > .btn + .btn,
+  .form-panel form > .btn + a.btn {
+    margin-top: 10px;
+  }
+
+  .details {
+    gap: 10px;
+  }
+
+  .auth-shell {
+    padding: 16px;
+  }
+}
+
+/* Respect users who prefer reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
