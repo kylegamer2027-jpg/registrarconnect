@@ -3,28 +3,16 @@
 
 require_once __DIR__ . '/../includes/functions.php';
 
-/*
-|--------------------------------------------------------------------------
-| Handle Registration Form Submission
-|--------------------------------------------------------------------------
-*/
-
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     verify_csrf();
 
-    // Retrieve and sanitize form inputs
     $name = trim($_POST['full_name'] ?? '');
     $email = strtolower(trim($_POST['email'] ?? ''));
     $student_no = trim($_POST['student_no'] ?? '');
     $password = $_POST['password'] ?? '';
 
-    /*
-    |--------------------------------------------------------------------------
-    | Validate Required Fields
-    |--------------------------------------------------------------------------
-    */
-
+    // Validate required fields
     if (
         $name === '' ||
         !filter_var($email, FILTER_VALIDATE_EMAIL) ||
@@ -32,22 +20,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $student_no === ''
     ) {
         set_flash(
-            'Complete all fields. Use a valid email and a password with at least 8 characters.',
+            'Please complete all fields. Enter a valid email, student number, and password with at least 8 characters.',
             'error'
         );
 
         redirect('/registrarconnect/auth/register.php');
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Create Student Account
-    |--------------------------------------------------------------------------
-    */
-
     try {
+        $pdo = db();
 
-        $query = db()->prepare(
+        // Check whether the email or student number already exists.
+        $check = $pdo->prepare(
+            'SELECT id
+             FROM users
+             WHERE email = ? OR student_no = ?
+             LIMIT 1'
+        );
+
+        $check->execute([$email, $student_no]);
+
+        if ($check->fetch(PDO::FETCH_ASSOC)) {
+            set_flash(
+                'This email address or student number is already registered. Please use different details.',
+                'error'
+            );
+
+            redirect('/registrarconnect/auth/register.php');
+        }
+
+        // Create the student account.
+        $query = $pdo->prepare(
             'INSERT INTO users (
                 full_name,
                 email,
@@ -65,26 +68,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'student'
         ]);
 
-        set_flash('Account created. You can now log in.');
+        set_flash(
+            'Account created successfully. You can now log in.',
+            'success'
+        );
 
         redirect('/registrarconnect/auth/login.php');
 
     } catch (PDOException $ex) {
 
-        set_flash(
-            'Unable to create account. Check whether your email or student number is already registered.',
-            'error'
-        );
+        // Log the technical error without exposing database details to users.
+        error_log('RegistrarConnect registration error: ' . $ex->getMessage());
+
+        // Handle duplicate-key errors separately.
+        if ($ex->getCode() === '23000') {
+            set_flash(
+                'The email address or student number may already be registered. Please check your details.',
+                'error'
+            );
+        } else {
+            set_flash(
+                'We could not create your account because of a database error. Please try again later.',
+                'error'
+            );
+        }
 
         redirect('/registrarconnect/auth/register.php');
     }
 }
-
-/*
-|--------------------------------------------------------------------------
-| Display Registration Page
-|--------------------------------------------------------------------------
-*/
 
 $page_title = 'Create Account';
 
@@ -104,7 +115,7 @@ require __DIR__ . '/../includes/header.php';
         Register as a student to request academic documents.
     </p>
 
-    <form method="post">
+    <form method="post" action="/registrarconnect/auth/register.php">
 
         <input
             type="hidden"
@@ -113,36 +124,35 @@ require __DIR__ . '/../includes/header.php';
         >
 
         <label for="full_name">Full name</label>
-
         <input
             type="text"
             id="full_name"
             name="full_name"
+            maxlength="150"
             required
             autocomplete="name"
         >
 
         <label for="student_no">Student number</label>
-
         <input
             type="text"
             id="student_no"
             name="student_no"
+            maxlength="60"
             required
         >
 
         <label for="email">Email address</label>
-
         <input
             type="email"
             id="email"
             name="email"
+            maxlength="150"
             required
             autocomplete="email"
         >
 
         <label for="password">Password</label>
-
         <input
             type="password"
             id="password"
