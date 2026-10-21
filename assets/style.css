@@ -1,0 +1,1162 @@
+/* ========================================
+   REGISTRARCONNECT — MAIN STYLESHEET
+   ======================================== */
+
+/* Google Fonts */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+
+/* ========================================
+   1. CSS VARIABLES & GLOBAL STYLES
+   ======================================== */
+
+:root {
+  --navy: #132348;
+  --navy2: #1b2f59;
+  --red: #c9233b;
+  --blue: #0066bd;
+  --ink: #14213d;
+  --muted: #7e8ba5;
+  --line: #e1e8f2;
+  --bg: #f6f8fc;
+  --shadow: 0 4px 14px rgba(26, 48, 82, 0.06);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  font-family: Inter, Arial, sans-serif;
+  color: var(--ink);
+  font-size: 13px;
+}
+
+a {
+  color: #0067c5;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* ========================================
+   2. SIDEBAR & NAVIGATION
+   ======================================== */
+
+.sidebar {
+  position: fixed;
+  inset: 0 auto 0 0;
+  width: 258px;
+  background: linear-gradient(160deg, #101d3d, #1b315e);
+  color: #d9e4ff;
+  padding: 26px 19px 18px;
+  display: flex;
+  flex-direction: column;
+  z-index: 5;
+}
+
+.brand {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  color: white;
+  margin-bottom: 44px;
+}
+
+.brand:hover {
+  text-decoration: none;
+}
+
+.brand-icon {
+  display: grid;
+  place-items: center;
+  background: #ce2b43;
+  color: white;
+  border-radius: 12px;
+  width: 42px;
+  height: 42px;
+  font-size: 24px;
+  box-shadow: 0 6px 18px #080f2540;
+}
+
+.brand b {
+  display: block;
+  font-size: 16px;
+  letter-spacing: -0.4px;
+}
+
+.brand small {
+  display: block;
+  font-size: 10px;
+  letter-spacing: 1.3px;
+  margin-top: 5px;
+  color: #c2d0f2;
+}
+
+.menu-label,
+.eyebrow {
+  font-size: 10px;
+  letter-spacing: 1.7px;
+  font-weight: 700;
+  color: #8da8dd;
+}
+
+.menu-label {
+  margin: 0 0 15px 13px;
+}
+
+.sidebar nav {
+  display: grid;
+  gap: 7px;
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding: 13px 14px;
+  border-radius: 11px;
+  color: #dce6ff;
+  font-weight: 500;
+}
+
+.nav-link span {
+  font-size: 18px;
+  width: 18px;
+}
+
+.nav-link.active {
+  background: #422541;
+  color: white;
+  box-shadow: inset 3px 0 #f0b429;
+}
+
+.nav-link:hover {
+  background: #293d68;
+  text-decoration: none;
+}
+
+.help-card {
+  margin-top: auto;
+  border: 1px solid #ffffff1c;
+  background: #ffffff09;
+  border-radius: 14px;
+  padding: 17px;
+  margin-bottom: 16px;
+}
+
+.help-icon {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  background: #ffffff12;
+  color: #f5b52c;
+  font-size: 20px;
+  margin-bottom: 17px;
+}
+
+.help-card b {
+  display: block;
+  color: white;
+}
+
+.help-card p {
+  font-size: 11px;
+  line-height: 1.6;
+  color: #aebfe1;
+}
+
+.help-card a {
+  font-size: 11px;
+  color: #ffbf37;
+  font-weight: 700;
+}
+
+.logout {
+  margin-top: 0;
+}
+
+/* ========================================
+   3. TOPBAR & USER PROFILE
+   ======================================== */
+
+.topbar {
+  height: 76px;
+  position: fixed;
+  left: 258px;
+  right: 0;
+  top: 0;
+  background: #fff;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 3.2%;
+  z-index: 4;
+}
+
+.search-placeholder {
+  width: min(430px, 50%);
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  padding: 13px;
+  color: #91a0b8;
+  background: #fbfcfe;
+}
+
+.user-menu {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.user-menu b {
+  display: block;
+  font-size: 12px;
+}
+
+.user-menu small {
+  display: block;
+  color: var(--muted);
+  font-size: 10px;
+  margin-top: 4px;
+}
+
+.bell {
+  font-size: 21px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 9px 12px;
+}
+
+.avatar {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: #f9dfe3;
+  border: 2px solid #f3c6cd;
+  color: #a31d31;
+  font-weight: 700;
+}
+
+/* ========================================
+   4. MAIN CONTENT & PAGE HEADINGS
+   ======================================== */
+
+.main-content {
+  margin-left: 258px;
+  padding: 118px 3.2% 52px;
+  min-height: calc(100vh - 84px);
+}
+
+.welcome-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.welcome-row h1,
+.page-heading h1 {
+  font-size: 32px;
+  letter-spacing: -1.2px;
+  font-weight: 500;
+  margin: 8px 0;
+}
+
+.welcome-row p,
+.page-heading p {
+  color: var(--muted);
+  font-size: 13px;
+  margin: 0;
+}
+
+.page-heading {
+  margin-bottom: 25px;
+}
+
+.page-heading > a {
+  font-size: 11px;
+}
+
+.page-heading .btn {
+  margin-top: 18px;
+}
+
+/* ========================================
+   5. BUTTONS
+   ======================================== */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9px;
+  padding: 13px 19px;
+  font:
+    600 12px Inter,
+    Arial,
+    sans-serif;
+  border: 1px solid transparent;
+  cursor: pointer;
+  text-decoration: none !important;
+}
+
+.primary {
+  background: linear-gradient(110deg, #d52f48, #ad1e32);
+  color: white;
+  box-shadow: 0 8px 18px #b5233822;
+}
+
+.primary:hover {
+  filter: brightness(0.96);
+}
+
+.outline {
+  background: #fff;
+  border-color: var(--line);
+  color: #1a355e;
+}
+
+.full {
+  width: 100%;
+  margin-top: 10px;
+}
+
+/* ========================================
+   6. STATISTICS CARDS
+   ======================================== */
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 38px;
+}
+
+.stat-card {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 18px;
+  box-shadow: var(--shadow);
+  min-width: 0;
+}
+
+.stat-icon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  border-radius: 12px;
+  font-size: 22px;
+}
+
+.blue {
+  background: #e9effb;
+  color: #3863a9;
+}
+
+.amber {
+  background: #fff2d9;
+  color: #bd7900;
+}
+
+.red {
+  background: #fde8eb;
+  color: #c5223a;
+}
+
+.green {
+  background: #e1f5ee;
+  color: #128568;
+}
+
+.purple {
+  background: #eee9ff;
+  color: #7655c9;
+}
+
+.cyan {
+  background: #e0f5f7;
+  color: #008ba0;
+}
+
+.stat-card small {
+  display: block;
+  color: #60718f;
+  font-size: 11px;
+}
+
+.stat-card p {
+  font-size: 10px;
+  color: #9aa7bb;
+  margin: 7px 0 0;
+}
+
+.stat-card strong {
+  font-size: 25px;
+  margin-left: auto;
+  color: #071b3b;
+}
+
+/* ========================================
+   7. SECTION & PANEL HEADINGS
+   ======================================== */
+
+.section-heading,
+.panel-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.section-heading {
+  margin-bottom: 17px;
+}
+
+.section-heading h2,
+.panel-heading h2 {
+  font-size: 16px;
+  font-weight: 500;
+  margin: 0 0 7px;
+}
+
+.section-heading p,
+.panel-heading p {
+  font-size: 11px;
+  color: #9aa7bb;
+  margin: 0;
+}
+
+.section-heading > a,
+.panel-heading > a {
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* ========================================
+   8. DOCUMENT CARDS
+   ======================================== */
+
+.document-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 13px;
+  margin-bottom: 34px;
+}
+
+.document-card {
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 18px 17px 20px;
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  min-height: 190px;
+}
+
+.doc-icon {
+  display: grid;
+  place-items: center;
+  width: 43px;
+  height: 43px;
+  border-radius: 12px;
+  font-size: 22px;
+  margin-bottom: 15px;
+  flex-shrink: 0;
+}
+
+.document-card h3 {
+  font-size: 11px;
+  font-weight: 500;
+  margin: 0 0 8px;
+  line-height: 1.5;
+}
+
+.document-card p {
+  font-size: 10px;
+  color: #8a98b0;
+  line-height: 1.6;
+  margin: 0 0 18px;
+}
+
+.document-card a {
+  font-size: 10px;
+  font-weight: 600;
+  margin-top: auto;
+}
+
+/* ========================================
+   9. DASHBOARD LAYOUT & PANELS
+   ======================================== */
+
+.lower-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 2.2fr) minmax(270px, 1fr);
+  gap: 17px;
+  align-items: stretch;
+}
+
+.panel {
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 15px;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  min-width: 0;
+}
+
+.panel-heading {
+  padding: 23px 20px 18px;
+  border-bottom: 1px solid #edf0f6;
+}
+
+/* ========================================
+   10. TABLES
+   ======================================== */
+
+.table-wrap {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  white-space: nowrap;
+}
+
+th {
+  background: #fafbfd;
+  color: #8291aa;
+  font-size: 8px;
+  letter-spacing: 0.4px;
+  font-weight: 600;
+  text-align: left;
+  padding: 14px 20px;
+}
+
+td {
+  border-top: 1px solid #edf0f6;
+  padding: 17px 20px;
+  font-size: 10px;
+  color: #526580;
+}
+
+td:first-child {
+  color: #005eb8;
+  font-weight: 600;
+}
+
+td a {
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.table-sub {
+  display: block;
+  margin-top: 4px;
+  color: #8a98b0;
+}
+
+/* ========================================
+   11. STATUS BADGES
+   ======================================== */
+
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 20px;
+  padding: 6px 9px;
+  background: #e9f4ff;
+  color: #0872c4;
+  font-size: 9px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.status::before {
+  content: "";
+  width: 5px;
+  height: 5px;
+  background: currentColor;
+  border-radius: 50%;
+}
+
+.status.pending {
+  background: #fff3dc;
+  color: #b87300;
+}
+
+.status.under-review {
+  background: #f0eaff;
+  color: #7651c7;
+}
+
+.status.processing {
+  background: #e8f4ff;
+  color: #0672c5;
+}
+
+.status.ready-for-release {
+  background: #f0eaff;
+  color: #7651c7;
+}
+
+.status.completed {
+  background: #e4f6ee;
+  color: #168565;
+}
+
+.status.rejected {
+  background: #fde8eb;
+  color: #c5223a;
+}
+
+/* ========================================
+   12. DOCUMENT TRACKING
+   ======================================== */
+
+.tracking-panel {
+  padding: 21px;
+}
+
+.tracking-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.tracking-title small {
+  font-size: 8px;
+  letter-spacing: 0.8px;
+  color: #8a98b0;
+}
+
+.tracking-panel h3 {
+  font-size: 14px;
+  font-weight: 500;
+  margin: 9px 0 18px;
+}
+
+.tracking-doc {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #f7f9fc;
+  padding: 13px;
+  border-radius: 11px;
+}
+
+.tracking-doc .doc-icon {
+  margin: 0;
+  width: 37px;
+  height: 37px;
+}
+
+.tracking-doc b,
+.tracking-doc small {
+  display: block;
+  font-size: 9px;
+}
+
+.tracking-doc small {
+  font-size: 8px;
+  color: #98a5ba;
+  margin-top: 5px;
+}
+
+/* Tracking Timeline */
+.timeline {
+  list-style: none;
+  padding: 16px 0 0;
+  margin: 0 0 15px;
+}
+
+.timeline li {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  position: relative;
+  min-height: 48px;
+}
+
+.timeline li:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  left: 10px;
+  top: 23px;
+  bottom: -1px;
+  width: 1px;
+  background: #dce3ed;
+}
+
+.timeline li > span {
+  width: 21px;
+  height: 21px;
+  border: 1px solid #dce3ed;
+  background: white;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: #8a9ab2;
+  font-size: 9px;
+  z-index: 1;
+  flex-shrink: 0;
+}
+
+.timeline li.done > span,
+.timeline li.current > span {
+  background: #ce2b43;
+  border-color: #ce2b43;
+  color: white;
+}
+
+.timeline li b {
+  display: block;
+  font-size: 10px;
+  font-weight: 500;
+  margin: 3px 0 5px;
+}
+
+.timeline li small {
+  font-size: 8px;
+  color: #9aa7bb;
+}
+
+/* ========================================
+   13. FORMS & INPUT FIELDS
+   ======================================== */
+
+.form-panel {
+  padding: 25px;
+}
+
+.form-panel h2 {
+  font-size: 17px;
+  font-weight: 500;
+  margin: 0 0 22px;
+}
+
+.form-panel h3 {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+form label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  margin: 17px 0 8px;
+}
+
+input,
+select,
+textarea {
+  width: 100%;
+  border: 1px solid #dce4ef;
+  border-radius: 8px;
+  padding: 12px 13px;
+  font:
+    12px Inter,
+    Arial,
+    sans-serif;
+  color: var(--ink);
+  background: white;
+  outline: none;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: #6c9fdb;
+  box-shadow: 0 0 0 3px #dcecff;
+}
+
+input:disabled {
+  background: #f4f6fa;
+  color: #8794aa;
+}
+
+.required {
+  color: #c9233b;
+}
+
+.form-note {
+  font-size: 10px;
+  line-height: 1.7;
+  color: #7e8ba5;
+  background: #f7f9fc;
+  border-radius: 8px;
+  padding: 12px;
+  margin: 18px 0;
+}
+
+.narrow {
+  max-width: 620px;
+}
+
+/* ========================================
+   14. DETAILS & HISTORY
+   ======================================== */
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+
+.details {
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  gap: 16px 12px;
+  margin: 0;
+}
+
+.details dt {
+  font-size: 11px;
+  color: #8794aa;
+}
+
+.details dd {
+  font-size: 12px;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.history-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.history-list li {
+  border-left: 2px solid #dbe5f2;
+  padding: 0 0 18px 15px;
+  margin-left: 5px;
+  position: relative;
+}
+
+.history-list li::before {
+  content: "";
+  position: absolute;
+  left: -6px;
+  top: 0;
+  width: 10px;
+  height: 10px;
+  background: #cf2a43;
+  border-radius: 50%;
+}
+
+.history-list b,
+.history-list small {
+  display: block;
+  font-size: 11px;
+}
+
+.history-list small {
+  font-size: 9px;
+  color: #8b99af;
+  margin-top: 5px;
+}
+
+.history-list p {
+  font-size: 10px;
+  line-height: 1.6;
+  color: #6f7f98;
+}
+
+/* ========================================
+   15. FILTERS, ALERTS & EMPTY STATES
+   ======================================== */
+
+.filter-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.filter-chip {
+  background: #fff;
+  border: 1px solid var(--line);
+  padding: 9px 12px;
+  border-radius: 20px;
+  font-size: 10px;
+  color: #445673;
+}
+
+.empty-state {
+  padding: 35px 20px;
+  text-align: center;
+  color: #8a98b0;
+  font-size: 12px;
+}
+
+.alert {
+  padding: 12px 15px;
+  border-radius: 9px;
+  margin-bottom: 16px;
+  font-size: 12px;
+}
+
+.alert.success {
+  background: #e4f6ee;
+  color: #137758;
+}
+
+.alert.error {
+  background: #fde8eb;
+  color: #a91e31;
+}
+
+/* ========================================
+   16. LOGIN & AUTHENTICATION
+   ======================================== */
+
+.auth-shell {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 30px;
+}
+
+.auth-card {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 17px;
+  box-shadow: 0 12px 40px #12264b12;
+  width: min(100%, 430px);
+  padding: 34px;
+}
+
+.auth-brand {
+  display: block;
+  font-size: 18px;
+  font-weight: 700;
+  color: #c9233b;
+  margin-bottom: 30px;
+}
+
+.auth-card h1 {
+  font-size: 25px;
+  font-weight: 600;
+  margin: 0 0 8px;
+}
+
+.auth-card > p {
+  color: #7e8ba5;
+  font-size: 12px;
+  line-height: 1.7;
+  margin-bottom: 24px;
+}
+
+.auth-switch {
+  text-align: center;
+  margin: 22px 0 0 !important;
+}
+
+.auth-switch a {
+  font-weight: 600;
+}
+
+.auth-card form label {
+  margin-top: 16px;
+}
+
+.auth-card .btn {
+  margin-top: 23px;
+}
+
+/* ========================================
+   17. FOOTER & DIVIDERS
+   ======================================== */
+
+.footer {
+  margin-left: 258px;
+  background: #fff;
+  border-top: 1px solid var(--line);
+  padding: 20px 3.2%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  color: #8491a8;
+  font-size: 9px;
+}
+
+.footer b {
+  display: block;
+  color: #26395a;
+  font-size: 10px;
+}
+
+.footer small {
+  display: block;
+  margin-top: 5px;
+}
+
+.footer:empty {
+  display: none;
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 25px 0;
+}
+
+/* ========================================
+   18. RESPONSIVE DESIGN
+   ======================================== */
+
+/* Tablets and smaller desktops */
+@media (max-width: 1200px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .document-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .lower-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .tracking-panel {
+    max-width: none;
+  }
+}
+
+/* Mobile and tablet screens */
+@media (max-width: 800px) {
+  .sidebar {
+    width: 76px;
+    padding: 18px 10px;
+  }
+
+  .brand {
+    justify-content: center;
+    margin-bottom: 30px;
+  }
+
+  .brand > span:last-child,
+  .menu-label,
+  .nav-link:not(.logout) {
+    font-size: 0;
+  }
+
+  .nav-link {
+    justify-content: center;
+    padding: 13px 7px;
+    font-size: 0;
+  }
+
+  .nav-link span {
+    font-size: 20px;
+  }
+
+  .help-card {
+    display: none;
+  }
+
+  .logout {
+    font-size: 0;
+    justify-content: center;
+  }
+
+  .topbar {
+    left: 76px;
+    padding: 0 15px;
+  }
+
+  .main-content {
+    margin-left: 76px;
+    padding: 105px 16px 35px;
+  }
+
+  .footer {
+    margin-left: 76px;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .document-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .welcome-row {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .welcome-row h1 {
+    font-size: 27px;
+  }
+
+  .detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .search-placeholder {
+    font-size: 0;
+    width: 45px;
+  }
+
+  .user-menu small {
+    display: none;
+  }
+}
+
+/* Small mobile screens */
+@media (max-width: 480px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .document-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .stat-card {
+    padding: 15px;
+  }
+
+  .details {
+    grid-template-columns: 110px 1fr;
+  }
+
+  .form-panel {
+    padding: 18px;
+  }
+
+  .auth-card {
+    padding: 25px;
+  }
+
+  .topbar {
+    height: 65px;
+  }
+
+  .main-content {
+    padding-top: 92px;
+  }
+}
